@@ -9,10 +9,50 @@ class HomeCubit extends Cubit<HomeState> {
 
   HomeCubit(this.getBooksUsecase) : super(HomeInitial());
 
+  bool isListView = true;
+  int selectedTab = 0;
+
   String currentQuery = 'flutter';
   String? currentCategory;
   int? currentMinPrice;
   int? currentMaxPrice;
+
+  void changeView(bool value) {
+    isListView = value;
+
+    if (state is HomeLoaded) {
+      emit(
+        HomeLoaded(
+          (state as HomeLoaded).books,
+          isListView: isListView,
+          selectedTab: selectedTab,
+        ),
+      );
+    }
+  }
+
+  void changeTab(int index) {
+    selectedTab = index;
+
+    if (state is HomeLoaded) {
+      emit(
+        HomeLoaded(
+          (state as HomeLoaded).books,
+          isListView: isListView,
+          selectedTab: selectedTab,
+        ),
+      );
+    }
+  }
+
+  Future<void> search(String query) async {
+    await fetchBooks(
+      query: query,
+      category: currentCategory,
+      minPrice: currentMinPrice,
+      maxPrice: currentMaxPrice,
+    );
+  }
 
   Future<void> fetchBooks({
     String query = 'flutter',
@@ -20,9 +60,9 @@ class HomeCubit extends Cubit<HomeState> {
     int? minPrice,
     int? maxPrice,
   }) async {
-    try {
-      emit(HomeLoading());
+    emit(HomeLoading(isListView: isListView, selectedTab: selectedTab));
 
+    try {
       currentQuery = query;
       currentCategory = category;
       currentMinPrice = minPrice;
@@ -35,50 +75,15 @@ class HomeCubit extends Cubit<HomeState> {
         maxPrice: maxPrice,
       );
 
-      emit(HomeLoaded(books));
+      emit(HomeLoaded(books, isListView: isListView, selectedTab: selectedTab));
     } catch (e) {
-      emit(HomeError(e.toString()));
+      emit(
+        HomeError(
+          e.toString(),
+          isListView: isListView,
+          selectedTab: selectedTab,
+        ),
+      );
     }
-  }
-
-  Future<void> refresh() async {
-    await fetchBooks(
-      query: currentQuery,
-      category: currentCategory,
-      minPrice: currentMinPrice,
-      maxPrice: currentMaxPrice,
-    );
-  }
-
-  Future<void> search(String query) async {
-    await fetchBooks(
-      query: query,
-      category: currentCategory,
-      minPrice: currentMinPrice,
-      maxPrice: currentMaxPrice,
-    );
-  }
-
-  Future<void> applyFilter({
-    String? category,
-    int? minPrice,
-    int? maxPrice,
-  }) async {
-    await fetchBooks(
-      query: currentQuery,
-      category: category,
-      minPrice: minPrice,
-      maxPrice: maxPrice,
-    );
-  }
-
-  Future<void> clearFilters() async {
-    currentCategory = null;
-    currentMinPrice = null;
-    currentMaxPrice = null;
-
-    await fetchBooks(
-      query: currentQuery,
-    );
   }
 }

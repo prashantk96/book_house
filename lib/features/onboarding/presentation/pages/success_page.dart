@@ -73,7 +73,7 @@ class SuccessPage extends StatelessWidget {
                 height: 58,
                 child: ElevatedButton(
                   onPressed: () {
-                    // context.replaceRoute(const HomeRoute());
+                    context.replaceRoute(const DashboardRoute());
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xff4B68FF),
